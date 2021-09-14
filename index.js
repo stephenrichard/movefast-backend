@@ -51,6 +51,7 @@ app.get('/users/:id/rewards', (req, res) => {
                 data: userRewards
               })
             } else {
+              // The user may exist but didn't connect in the past week
               const weeklyRewards = generateWeeklyRewards(requestedDate)
               rewards[weekNumber[1]] = {}
               rewards[weekNumber[1]][id] = weeklyRewards
@@ -140,9 +141,6 @@ app.get('/users/:id/rewards', (req, res) => {
                   data: rewards[weekNumber[1]][id][rewardIndex]
                 })
               })
-              // res.status(200).json({
-              //   data: reward
-              // })
             } else {
               res.status(401).send({ message: 'The reward is already expired' })  
             }

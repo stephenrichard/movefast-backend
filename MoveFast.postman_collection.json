@@ -1,0 +1,80 @@
+{
+	"info": {
+		"_postman_id": "ce43ba4d-39a9-4502-ad58-8486b8f49106",
+		"name": "MoveFast",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GET user weekly rewards",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3001/users/1/rewards?at=2021-09-13T12:00:00Z",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3001",
+					"path": [
+						"users",
+						"1",
+						"rewards"
+					],
+					"query": [
+						{
+							"key": "at",
+							"value": "2021-09-13T12:00:00Z"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Redeem a reward",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3001/users/1/rewards/2021-09-13T12:00:00Z/redeem/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3001",
+					"path": [
+						"users",
+						"1",
+						"rewards",
+						"2021-09-13T12:00:00Z",
+						"redeem",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

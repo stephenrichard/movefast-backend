@@ -10,6 +10,8 @@ The rewards are stored by week number because I assume that we can have an histo
 
 In each week object, weekly rewards are stored in an object with the user ID as the key. I found it easier to retrieve the array and manipulate its values afterwards.
 
+**Please find a Postman export at the project root to test the two endpoints more easily.**
+
 ## Project run
 ```
 npm i && nodemon index.js

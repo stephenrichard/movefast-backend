@@ -11,8 +11,16 @@ app.get('/', (req, res) => {
   res.send('Hello world')
 })
 
+/**
+ * GET
+ * 
+ * Get user weeekly rewards / Create user and rewards if necessary
+ * 
+ * id: int User id
+ * 
+ * ?query -> at: ISOString date format
+ */
 app.get('/users/:id/rewards', (req, res) => {
-  console.log(req.query)
   const id = parseInt(req.params.id)
   const dateAt = req.query.at
 
@@ -63,12 +71,10 @@ app.get('/users/:id/rewards', (req, res) => {
         const weeklyRewards = generateWeeklyRewards(requestedDate)
 
         fs.readFile(rewardsFile, "utf8", (err, rewardsJsonS) => {
-          console.log('err reading rewards', err)
           if (err) return
       
           try {
             rewards = JSON.parse(rewardsJsonS)
-            console.log('rewards', rewards)
             if (!rewards[weekNumber[1]]) rewards[weekNumber[1]] = {}
             rewards[weekNumber[1]][id] = weeklyRewards
 
@@ -83,6 +89,75 @@ app.get('/users/:id/rewards', (req, res) => {
             res.status(500).send('Error parsing rewards file')
           }
         })
+      }
+    } catch (e) {
+      res.status(500).send('Error parsing file')
+    }
+  })
+})
+
+/**
+ * PATCH
+ * 
+ * Redeem a rewards and return it on success
+ * 
+ * id: User id
+ * rewardId: ISOString format date
+ */
+ app.patch('/users/:id/rewards/:rewardId/redeem', (req, res) => {
+   const id = parseInt(req.params.id)
+   const rewardId = req.params.rewardId
+
+  if (!id || !rewardId) res.status(400).send('Missing user or reward id')
+
+  let rewards = []
+  const reqDate = new Date(rewardId)
+  const weekNumber = getWeekNumber(reqDate)
+
+  fs.readFile(rewardsFile, "utf8", (err, jsonS) => {
+    if (err) return
+
+    try {
+      rewards = JSON.parse(jsonS)
+
+      if (rewards[weekNumber[1]] && rewards[weekNumber[1]][id]) {
+        const rewardIndex = rewards[weekNumber[1]][id].findIndex((reward, index) => {
+          const currReward = new Date(reward.availableAt)
+          return currReward.getDay() === reqDate.getDay()
+        })
+        const reward = rewards[weekNumber[1]][id][rewardIndex]
+
+        if (reward && reward.expiresAt) {
+          if (!reward.redeemedAt) {
+            const canRedeem = dateDiffInDays(new Date(reward.availableAt), new Date())
+  
+            if (canRedeem === 0) {
+              rewards[weekNumber[1]][id][rewardIndex] = Object.assign({}, reward, {
+                redeemedAt: new Date()
+              })
+              fs.writeFile(rewardsFile, JSON.stringify(rewards, null, 2), () => {
+                res.status(200).json({
+                  data: rewards[weekNumber[1]][id][rewardIndex]
+                })
+              })
+              // res.status(200).json({
+              //   data: reward
+              // })
+            } else {
+              res.status(401).send({ message: 'The reward is already expired' })  
+            }
+          } else {
+            res.status(200).send({
+              message: 'This reward has already been redeemed',
+              data: reward,
+            })
+          }
+        } else {
+          res.status(400).send('No reward found')
+        }
+
+      } else {
+        res.status(400).send('Cannot redeem this rewards ID. User ID or reward ID might be incorrect.')
       }
     } catch (e) {
       res.status(500).send('Error parsing file')
@@ -136,6 +211,17 @@ function generateWeeklyRewards(requestedDate) {
   }
   
   return [...daysBefore, ...daysAfter]
+}
+
+const _MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+// a and b are javascript Date objects
+function dateDiffInDays(a, b) {
+  // Discard the time and time-zone information.
+  const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+  return Math.floor((utc2 - utc1) / _MS_PER_DAY);
 }
 
 app.listen(port, () => {
